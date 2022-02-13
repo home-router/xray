@@ -1,0 +1,13 @@
+[Unit]
+Description=Load ipset for xray tproxy
+Requires=nftables.service
+After=nftables.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/usr/local/share/xray/load-ipset.sh geoip_cn /usr/local/share/xray/china_ip_list.txt
+ExecStop=nft flush set inet mangle geoip_cn
+
+[Install]
+WantedBy=xray.service
