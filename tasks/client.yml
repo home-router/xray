@@ -1,0 +1,28 @@
+- name: install xray (client)
+  copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }} owner=root group=root
+  with_items:
+    - { src: release/geoip.dat, dest: /usr/local/share/xray/geoip.dat, mode: "0644" }
+    - { src: release/geosite.dat, dest: /usr/local/share/xray/geosite.dat, mode: "0644" }
+
+- name: generate client config
+  template: src={{ item }} dest=/{{ item | dirname }}/config.json owner=root group=root mode="0644"
+  with_items:
+    - usr/local/etc/xray/client.json.j2
+  notify: restart xray
+  tags:
+    - config
+
+- name: increase open file limit
+  pam_limits:
+    domain: '*'
+    limit_type: '{{ item.type }}'
+    limit_item: '{{ item.item }}'
+    value: '{{ item.value }}'
+  with_items:
+    - { type: soft, item: nofile, value: 100000 }
+    - { type: hard, item: nofile, value: 100000 }
+  tags:
+    - config
+
+- name: include xray transparent proxy setting
+  include: xray-tproxy.yml

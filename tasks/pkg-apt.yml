@@ -1,0 +1,4 @@
+- name: install nftables with apt
+  apt:
+      name: nftables
+      state: present

@@ -1,0 +1,126 @@
+# We download xray release Xray-{{ xray_os_arch }}-{{ xray_version }}.tar.gz
+xray_os_arch: linux-64
+xray_version: v1.5.3
+
+#######################################
+# Remote xray server related config.
+#######################################
+# uuid for local xray client itself.
+# Run `uuidgen` to generate valid uuid.
+xray_client_uuid: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxx
+# uuid for all clients on xray server.
+xray_server_clients:
+  - { uuid: "{{ xray_client_uuid }}", email: xray@router }
+  # Specify other clients here.
+  #- { uuid: yyyy-yyyy..., email: client@host }
+# xray_server_* is used for specifying remote xray server information.
+# dns_name is used for server certificate checking.
+xray_server_dns_name: xray-server.domain
+xray_server_ip: 1.2.3.4
+xray_server_port: 443
+# Use fallback syntax of xray. Convert to json in the generated config file.
+xray_server_fallbacks:
+  - dest: 80
+xray_server_certifacate_file: /etc/letsencrypt/live/{{ xray_server_dns_name }}/fullchain.pem
+xray_server_key_file: /etc/letsencrypt/live/{{ xray_server_dns_name }}/privkey.pem
+
+
+#######################################
+# Local xray config.
+#######################################
+# For local http proxy server.
+xray_local_address: 192.168.1.254
+xray_http_port: 1984
+# For local DNS server.
+# If set this to 53, must disable/change dnsmasq's DNS port.
+xray_dns_port: 53
+# For local transparent proxy server.
+xray_tproxy_port: 1812
+
+# Transparent proxy for only selected source IPs (subnet or host).
+# Traffic from other IPs are not affected.
+# This is optional. If not defined, all forwarding traffic will be intercepted by transparent proxy.
+#xray_tproxy_src_addresses:
+#  lan0: # For lan host.
+#    - 192.168.1.0/24
+#  wg0: # For WireGuard peer.
+#    - 192.168.3.2
+
+# Config for locally generated traffic processing.
+xray_tproxy_local_traffic:
+  # Set this to true to intercept locally generated traffic with transparent proxy.
+  enable: true
+  # For local services
+  direct_tcp_src_ports:
+    - 22
+  direct_udp_src_ports:
+    - "{{ xray_dns_port }}"
+    # For IPsec service.
+    - 500
+    - 4500
+    # Also add wireguard port here if running wireguard and xray together.
+
+# Use following DNS servers for domains that have to be resolved by remote xray server.
+# Must specify at least one. Otherwise the generated config would be invalid json.
+xray_proxy_dns_servers:
+  - 1.1.1.1
+  - 8.8.8.8
+# Specify domains that must be resolved with remote xray server.
+# These domains will also use proxy in routing.
+xray_proxy_dns_domains:
+  # Some domains may resolve to 127.0.0.1 by direct DNS servers. Direct them to use remote DNS servers.
+  - domain:github.com
+  - domain:raw.githubusercontent.com
+
+# Use following DNS servers for domains that can be resolved without going through remote xray server.
+xray_direct_dns_servers:
+  - 223.5.5.5
+  - 114.114.114.114
+
+xray_direct_domains:
+  # We can use xray's syntax for domain matching
+  - geosite:cn
+  - geosite:apple-cn
+  - geosite:google-cn
+  - geosite:tld-cn
+  - geosite:category-games@cn
+  - "{{ xray_server_dns_name }}"
+
+xray_direct_ips:
+  - geoip:cn
+
+xray_block_domains:
+  - geosite:category-ads-all
+
+xray_block_ips:
+  - geoip:private # prevent access to local service through xray
+
+xray_direct_protocols:
+  - bittorrent
+
+# Avoid UDP DNS requests using too much open fd.
+xray_udp_dns_conn_idle: 5
+
+xray_direct_firewall_marks:
+  # The 1st item in the list is reuiqred.
+  # For xray self generated traffic, add this as firewall mark to by-pass
+  # tproxy firewall rules.
+  - 255
+  # Include other services which uses firewall mark and should by-pass
+  # tproxy.
+  # Example: strongswan IPsec VPN with xfrm interface.
+  #- 254
+  #- 253
+
+xray_sysctl_params:
+  # Host running xray may act as a side-gateway, so client should indeed send traffic to xray host
+  # even if there's a shorter path in this local subnet.
+  # We have to disable send_redicts on specific interfaces in order to make this work.
+  net.ipv4.conf.all.send_redirects: 0
+  # Change eth0 according to your system.
+  net.ipv4.conf.eth0.send_redirects: 0
+
+# xray re-route firewall mark.
+# This is to handle traffic generated on the host which xray runs.
+xray_route_firewall_mark: 1
+xray_route_table_id: 100

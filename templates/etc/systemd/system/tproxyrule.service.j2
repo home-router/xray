@@ -1,0 +1,17 @@
+[Unit]
+Description=xray tproxy rule
+After=network.target
+Wants=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/sbin/ip rule add fwmark {{ xray_route_firewall_mark }} table {{ xray_route_table_id }}
+ExecStart=/sbin/ip route add local 0.0.0.0/0 dev lo table {{ xray_route_table_id }}
+
+ExecStop=/sbin/ip route del local 0.0.0.0/0 dev lo table {{ xray_route_table_id }}
+ExecStop=/sbin/ip rule del fwmark {{ xray_route_firewall_mark }} table {{ xray_route_table_id }}
+
+
+[Install]
+WantedBy=multi-user.target

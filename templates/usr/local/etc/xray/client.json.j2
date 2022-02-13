@@ -1,0 +1,214 @@
+{
+    "policy": {
+        "levels": {
+            "0": {
+                "handshake": 4,
+                "connIdle": 180,
+                "uplinkOnly": 2,
+                "downlinkOnly": 5,
+                "statsUserUplink": false,
+                "statsUserDownlink": false,
+                "bufferSize": 1024
+            },
+            "53": {
+                "handshake": 4,
+                "connIdle": {{ xray_udp_dns_conn_idle }}, // Avoid UDP DNS request using too much open fd.
+                "uplinkOnly": 0,
+                "downlinkOnly": 0,
+                "statsUserUplink": false,
+                "statsUserDownlink": false,
+                "bufferSize": 128
+            }
+        },
+        "system": {
+            "statsInboundUplink": false,
+            "statsInboundDownlink": false
+        }
+    },
+    "log": {
+        "access": "",
+        "loglevel": "warning",  // valid options: debug, info, warning, error, none
+        "error": ""
+    },
+    "inbounds": [
+        {
+            "port": {{ xray_http_port }},
+            "listen": "{{ xray_local_address }}",
+            "protocol": "http",
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls"]
+            },
+            "settings": {
+                "auth": "noauth",
+                "udp": false
+            }
+        },
+        {
+            "tag":"transparent",
+            "port": {{ xray_tproxy_port }},
+            "listen": "127.0.0.1",
+            "protocol": "dokodemo-door",
+            "settings": {
+                "network": "tcp,udp",
+                "followRedirect": true
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": [ "http", "tls" ]
+            },
+            "streamSettings": {
+                "sockopt": {
+                    "tproxy": "tproxy" // use TPROXY for transparent proxy
+                }
+            }
+        },
+        {
+            "tag": "dns-in",
+            "port": {{ xray_dns_port }},
+            "listen": "{{ xray_local_address }}",
+            "protocol": "dokodemo-door",
+            "settings": {
+                "address": "{{ xray_direct_dns_servers[0] }}",
+                "port": 53,
+                "network": "tcp,udp",
+                "userLevel": 53
+            },
+            "sniffing": {
+                "enabled": true
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "tag": "xwall",
+            "protocol": "vless",
+            "settings": {
+                "vnext": [
+                    {
+                        "address": "{{ xray_server_ip }}",
+                        "port": 443,
+                        "users": [
+                            {
+                                "id": "{{ xray_client_uuid }}",
+                                // Refer to https://github.com/XTLS/Xray-core/discussions/59 before using xtls-rprx-splice.
+                                // Performance may drop due to enabling ip forwarding.
+                                "flow": "xtls-rprx-splice",
+                                "encryption": "none",
+                                "level": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "xtls",
+                "xtlsSettings": {
+                    "serverName": "{{ xray_server_dns_name }}"
+                }
+            }
+        },
+        {
+            "tag": "direct", // direct without going through remote xray server
+            "protocol": "freedom",
+            "settings": {
+                "domainStrategy": "UseIP"
+            },
+            "streamSettings": {
+                "sockopt": {
+                    "mark": {{ xray_direct_firewall_marks[0] }}
+                }
+            }
+        },
+        {
+            "tag": "block", // block all traffic
+            "protocol": "blackhole",
+            "settings": {
+                "response": {
+                    "type": "http"
+                }
+            }
+        },
+        {
+            "tag": "dns-out",
+            "protocol": "dns",
+            "streamSettings": {
+                "sockopt": {
+                    "mark": {{ xray_direct_firewall_marks[0] }}
+                }
+            }
+        }
+    ],
+    "dns": {
+        "servers": [
+{% for ns in xray_direct_dns_servers %}
+            {
+                "address": "{{ ns }}",
+                "port": 53,
+                "domains": {{ xray_direct_domains | tojson }}
+            },
+{% endfor %}
+{% for ns in xray_proxy_dns_servers %}
+            {
+                "address": "{{ ns }}",
+                "port": 53,
+                "domains": {{ xray_proxy_dns_domains | tojson }}
+            },
+{% endfor %}
+            "localhost"
+        ]
+    },
+    "routing": {
+        "domainStrategy": "IPOnDemand",
+        "rules": [
+            { // Intercept DNS port traffic and use v2ray's DNS.
+              // If running another DNS server using port 53 on the host running xray, avoid use TPROXY to intercept DNS
+              // traffic. The return DNS traffic maybe rejected by client because port is not bound to 53.
+                "type": "field",
+                "outboundTag": "dns-out",
+                "inboundTag": [ "transparent", "dns-in" ],
+                "port": {{ xray_dns_port }}
+            },
+{# Prefer nftables/iptables to bypass UDP traffic, so this is commented out.
+            { // direct for udp port 123 (NTP protocol). Correct system time is required for connection to server.
+                "type": "field",
+                "outboundTag": "direct",
+                "inboundTag": [ "transparent" ],
+                "network": "udp",
+                "port": 123
+            },
+#}
+            { // direct ip
+                "type": "field",
+                "outboundTag": "direct",
+                "ip": {{ (xray_direct_dns_servers|list + xray_direct_ips|list) | tojson }}
+            },
+            { // direct domains
+                "type": "field",
+                "outboundTag": "direct",
+                "domain": {{ xray_direct_domains | tojson }}
+            },
+            { // Cross the wall.
+                "type": "field",
+                "outboundTag": "xwall",
+                "ip": {{ xray_proxy_dns_servers | tojson }}
+            },
+            { // block domains
+                "type": "field",
+                "outboundTag": "block",
+                "domain": {{ xray_block_domains | tojson }}
+            },
+            { // block ips
+                "type": "field",
+                "outboundTag": "block",
+                "ip": {{ xray_block_ips | tojson }}
+            },
+            { // direct protocol
+                "type": "field",
+                "outboundTag": "direct",
+                "protocol": {{ xray_direct_protocols | tojson }}
+            }
+        ]
+    }
+}

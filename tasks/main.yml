@@ -1,0 +1,48 @@
+- name: check if release is already downloaded
+  stat: path="{{ role_path }}/files/release/Xray-{{ xray_os_arch }}-{{ xray_version }}.zip"
+  register: release_check
+  delegate_to: localhost
+  become: no
+  tags:
+    - localhost
+
+- name: download release
+  shell: "{{ role_path }}/scripts/download-xray.sh {{ xray_version }}"
+  delegate_to: localhost
+  when: not release_check.stat.exists
+  become: no
+  tags:
+    - localhost
+
+- name: update geodata
+  shell: "{{ role_path }}/scripts/download-geodata.sh"
+  delegate_to: localhost
+  become: no
+  tags:
+    - localhost
+
+- name: create install directories
+  file: path={{ item }} state=directory owner=root group=root mode=0755
+  with_items:
+    - /usr/local/share/xray
+    - /usr/local/etc/xray
+
+- name: install xray
+  copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }} owner=root group=root
+  with_items:
+    - { src: release/xray, dest: /usr/local/bin/xray, mode: "0755" }
+    - { src: xray.service, dest: /etc/systemd/system/xray.service, mode: "0644" }
+    - { src: xray@.service, dest: /etc/systemd/system/xray@.service, mode: "0644" }
+    - { src: journald@xray.conf, dest: /etc/systemd/journald@xray.conf, mode: "0644" }
+  notify: restart xray
+
+- name: enable systemd service
+  systemd: name={{ item }} enabled=yes
+  with_items:
+    - xray
+
+- include: client.yml
+  when: "'xray' in group_names"
+
+- include: server.yml
+  when: "'xray_server' in group_names"

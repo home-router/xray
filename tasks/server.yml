@@ -1,0 +1,7 @@
+- name: generate server config
+  template: src={{ item }} dest=/{{ item | dirname }}/config.json owner=root group=root mode="0644"
+  with_items:
+    - usr/local/etc/xray/server.json.j2
+  notify: restart xray
+  tags:
+    - config

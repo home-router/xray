@@ -1,0 +1,4 @@
+- name: install nftables with pacman
+  pacman:
+      name: nftables
+      state: present

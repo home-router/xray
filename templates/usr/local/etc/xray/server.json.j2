@@ -1,0 +1,58 @@
+{
+    "log": {
+        "access": "",
+        "loglevel": "warning",  // valid options: debug, info, warning, error, none
+        "error": ""
+    },
+    "inbounds": [
+        {
+            "port": {{ xray_server_port }},
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+{% for client in xray_server_clients %}
+                    {
+                        "id": "{{ client['uuid'] }}",
+                        "flow": "xtls-rprx-direct",
+                        "level": 0,
+                        "email": "{{ client['email'] }}"
+                    }{% if not loop.last %},{% endif %}
+
+{% endfor %}
+                ],
+                "decryption": "none",
+                "fallbacks": {{ xray_server_fallbacks | tojson }}
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "xtls",
+                "xtlsSettings": {
+                    "alpn": [
+                        "http/1.1"
+                    ],
+                    "certificates": [
+                        {
+                            "certificateFile": "{{ xray_server_certifacate_file }}",
+                            "keyFile": "{{ xray_server_key_file }}"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom",
+            "settings": {}
+        }
+    ],
+    "routing": {
+        "rules": [
+            { // Prevent access to local service.
+                "type": "field",
+                "ip": ["geoip:private"],
+                "outboundTag": "blocked"
+            }
+        ]
+    }
+}

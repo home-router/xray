@@ -1,0 +1,84 @@
+# If xray is running inside LXC container, we should setup kernel module loading
+# on host system instead of inside container.
+# Put host name inside "lxc_container" group in ansible inventory to mark this.
+- name: Load nft_tproxy module
+  modprobe:
+    name: nft_tproxy
+    state: present
+  when: "'lxc_container' not in group_names"
+
+- name: Ensure tproxy module is loaded on boot
+  lineinfile:
+    path: /etc/modules-load.d/modules.conf
+    regexp: '^nft_tproxy'
+    line: 'nft_tproxy'
+    create: yes
+    owner: root
+    group: root
+    mode: '0644'
+  when: "'lxc_container' not in group_names"
+
+- name: install tproxy route settings systemd service (client)
+  template: src={{ item }} dest=/{{ item | regex_replace('\.j2$', '') }} mode="0644" owner=root group=root
+  notify: restart tproxyrule
+  with_items:
+    - etc/systemd/system/tproxyrule.service.j2
+  tags:
+    - config
+
+- name: enable systemd service route settings (client)
+  systemd: name={{ item }} enabled=true daemon_reload=yes
+  with_items:
+    - tproxyrule
+  tags:
+    - config
+
+- name: install package on system
+  include: "pkg-{{ ansible_pkg_mgr }}.yml"
+
+- name: ensure /etc/nftables exists
+  file: path={{ item }} state=directory owner=root group=root mode=0755
+  with_items:
+    - /etc/nftables
+
+- name: ensure /etc/nftables.conf contains "flush ruleset"
+  lineinfile:
+    path: /etc/nftables.conf
+    line: 'flush ruleset'
+    insertafter: '^#!/usr/bin/nft'
+
+- name: ensure /etc/nftables.conf includes "/etc/nftables/*.nft"
+  lineinfile:
+    path: /etc/nftables.conf
+    line: 'include "/etc/nftables/*.nft"'
+    insertafter: EOF
+
+- name: enable nftables service
+  systemd: name=nftables enabled=true
+  notify: restart nftables
+
+- name: generate tproxy nftables config
+  template: src={{ item }} dest=/{{ item | regex_replace('\.j2$', '') }} mode="0644" owner=root group=root
+  with_items:
+    - etc/nftables/xray-tproxy.nft.j2
+  notify: restart nftables
+  tags:
+    - config
+
+- name: install china ip list
+  copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }} owner=root group=root
+  with_items:
+    - { src: load-ipset.sh, dest: /usr/local/share/xray/load-ipset.sh, mode: "0755" }
+    - { src: load-ipset.service, dest: /etc/systemd/system/load-ipset.service, mode: "0644" }
+    - { src: release/china_ip_list.txt, dest: /usr/local/share/xray/china_ip_list.txt, mode: "0644" }
+  notify: restart load-ipset
+
+- name: enable load-ipset service
+  systemd: name=load-ipset enabled=true
+  notify: restart load-ipset
+
+- name: set sysctl parameters
+  sysctl: name={{ item.key }} value={{ item.value }} state=present reload=true sysctl_file=/etc/sysctl.d/99-sysctl.conf
+  with_dict: "{{ xray_sysctl_params }}"
+  tags:
+    - config

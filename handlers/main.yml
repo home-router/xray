@@ -1,0 +1,14 @@
+- name: restart xray
+  systemd: name=xray state=restarted
+
+- name: restart tproxyrule
+  systemd: name=tproxyrule state=restarted
+
+- name: restart nftables
+  # systemd nftables service may flush all rules before executing the nft script.
+  # In case there's error in the script, it will result in empty nftable rulesets which
+  # is not desirable.
+  command: /usr/sbin/nft -f /etc/nftables.conf
+
+- name: restart load-ipset
+  systemd: name=load-ipset state=restarted
