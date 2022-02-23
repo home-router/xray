@@ -15,6 +15,18 @@ define xray_direct_local_udp_sports = { {{ xray_tproxy_local_traffic['direct_udp
 {%   endif %}
 {% endif %}
 
+# Disable connection tracking for DNS service.
+table inet raw {
+	chain DNS_PREROUTING {
+		type filter hook prerouting priority raw; policy accept;
+		udp dport 53 counter notrack;
+	}
+	chain DNS_OUTPUT {
+		type filter hook output priority raw; policy accept;
+		udp sport 53 counter notrack;
+	}
+}
+
 table inet mangle {
 	set geoip_cn {
 		type ipv4_addr
