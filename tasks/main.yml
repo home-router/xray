@@ -18,6 +18,7 @@
   shell: "{{ role_path }}/scripts/download-geodata.sh"
   delegate_to: localhost
   become: no
+  when: "'xray_server' not in group_names"
   tags:
     - localhost
 
