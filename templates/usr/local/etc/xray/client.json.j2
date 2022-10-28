@@ -83,6 +83,7 @@
         {
             "tag": "xwall",
             "protocol": "vless",
+{% if xray_transport == "xtls" %}
             "settings": {
                 "vnext": [
                     {
@@ -108,6 +109,34 @@
                     "serverName": "{{ xray_server_dns_name }}"
                 }
             }
+{% elif xray_transport == "websocket" %}
+            "settings": {
+                "vnext": [
+                    {
+                        "address": "{{ xray_server_dns_name }}",
+                        "port": 443,
+                        "users": [
+                            {
+                                "id": "{{ xray_client_uuid }}",
+                                "encryption": "none",
+                                "level": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "ws",
+                "security": "tls",
+                "tlsSettings": {
+                     "serverName": "{{ xray_server_dns_name }}",
+                     "fingerprint": "chrome"
+                },
+                "wsSettings": {
+                    "path": "/{{ xray_websocket_path }}/"
+                }
+            }
+{% endif %}
         },
         {
             "tag": "direct", // direct without going through remote xray server

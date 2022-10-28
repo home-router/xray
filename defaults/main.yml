@@ -18,12 +18,24 @@ xray_server_clients:
 xray_server_dns_name: xray-server.domain
 xray_server_ip: 1.2.3.4
 xray_server_port: 443
+
+
+#######################################
+# xray transport
+#######################################
+
+# Must choose only one transport method.
+
+xray_transport: xtls
 # Use fallback syntax of xray. Convert to json in the generated config file.
 xray_server_fallbacks:
   - dest: 80
 xray_server_certifacate_file: /etc/letsencrypt/live/{{ xray_server_dns_name }}/fullchain.pem
 xray_server_key_file: /etc/letsencrypt/live/{{ xray_server_dns_name }}/privkey.pem
 
+#xray_transport: websocket
+# Please do not include slash in websocket path. Template will add slashes.
+xray_websocket_path: REPLACE_WITH_RANDOM_PATH_AND_SYNC_WITH_WEBSERVER
 
 #######################################
 # Local xray config.

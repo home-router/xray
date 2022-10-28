@@ -7,22 +7,29 @@
     "inbounds": [
         {
             "port": {{ xray_server_port }},
+{% if xray_transport == "websocket" %}
+            "listen": "127.0.0.1",
+{% endif %}
             "protocol": "vless",
             "settings": {
                 "clients": [
 {% for client in xray_server_clients %}
                     {
                         "id": "{{ client['uuid'] }}",
+{% if xray_transport == "xtls" %}
                         "flow": "xtls-rprx-direct",
+{% endif %}
                         "level": 0,
                         "email": "{{ client['email'] }}"
                     }{% if not loop.last %},{% endif %}
 
 {% endfor %}
                 ],
-                "decryption": "none",
-                "fallbacks": {{ xray_server_fallbacks | tojson }}
+                "decryption": "none"{% if xray_transport == "xtls" %},
+                "fallbacks": {{ xray_server_fallbacks | tojson }}{% endif %}
+
             },
+{% if xray_transport == "xtls" %}
             "streamSettings": {
                 "network": "tcp",
                 "security": "xtls",
@@ -37,7 +44,15 @@
                         }
                     ]
                 }
+{% elif xray_transport == "websocket" %}
+            "streamSettings": {
+                "network": "ws",
+                "security": "none",
+                "wsSettings": {
+                    "path": "/{{ xray_websocket_path }}/"
+                }
             }
+{% endif %}
         }
     ],
     "outbounds": [
