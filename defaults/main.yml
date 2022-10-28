@@ -16,7 +16,8 @@ xray_server_clients:
 # xray_server_* is used for specifying remote xray server information.
 # dns_name is used for server certificate checking.
 xray_server_dns_name: xray-server.domain
-xray_server_ip: 1.2.3.4
+# Optional to specify server ip to avoid name resolve.
+#xray_server_ip: 1.2.3.4
 xray_server_port: 443
 
 
@@ -91,11 +92,12 @@ xray_direct_dns_servers:
 
 xray_direct_domains:
   # We can use xray's syntax for domain matching
-  - geosite:cn
+  - geosite:private
   - geosite:apple-cn
   - geosite:google-cn
   - geosite:tld-cn
   - geosite:category-games@cn
+  - geosite:cn
   - "{{ xray_server_dns_name }}"
 
 xray_direct_ips:
@@ -106,6 +108,19 @@ xray_block_domains:
 
 xray_block_ips:
   - geoip:private # prevent access to local service through xray
+
+xray_server_block_domains:
+  - geosite:category-ads-all
+  - geosite:private
+  - geosite:apple-cn
+  - geosite:google-cn
+  - geosite:tld-cn
+  - geosite:category-games@cn
+  - geosite:cn
+
+xray_server_block_ips:
+  - geoip:private
+  - geoip:cn
 
 xray_direct_protocols:
   - bittorrent

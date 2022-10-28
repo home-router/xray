@@ -59,14 +59,29 @@
         {
             "protocol": "freedom",
             "settings": {}
+        },
+        {
+            "tag": "block", // block all traffic
+            "protocol": "blackhole",
+            "settings": {
+                "response": {
+                    "type": "http"
+                }
+            }
         }
     ],
     "routing": {
+        "domainStrategy": "IPOnDemand",
         "rules": [
-            { // Prevent access to local service.
+            { // block domains
                 "type": "field",
-                "ip": ["geoip:private"],
-                "outboundTag": "blocked"
+                "outboundTag": "block",
+                "domain": {{ xray_server_block_domains | tojson }}
+            },
+            { // block ips
+                "type": "field",
+                "outboundTag": "block",
+                "ip": {{ xray_server_block_ips | tojson }}
             }
         ]
     }

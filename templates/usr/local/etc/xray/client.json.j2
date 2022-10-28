@@ -87,7 +87,7 @@
             "settings": {
                 "vnext": [
                     {
-                        "address": "{{ xray_server_ip }}",
+                        "address": "{{ xray_server_ip | default(xray_server_dns_name) }}",
                         "port": 443,
                         "users": [
                             {
@@ -113,7 +113,7 @@
             "settings": {
                 "vnext": [
                     {
-                        "address": "{{ xray_server_dns_name }}",
+                        "address": "{{ xray_server_ip | default(xray_server_dns_name) }}",
                         "port": 443,
                         "users": [
                             {
