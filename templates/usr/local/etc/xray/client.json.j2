@@ -199,6 +199,11 @@
                 "inboundTag": [ "transparent", "dns-in" ],
                 "port": {{ xray_dns_port }}
             },
+            { // direct dns servers, required before block IPs if geoip:private is blocked.
+                "type": "field",
+                "outboundTag": "direct",
+                "ip": {{ xray_direct_dns_servers | tojson }}
+            },
 {# Prefer nftables/iptables to bypass UDP traffic, so this is commented out.
             { // direct for udp port 123 (NTP protocol). Correct system time is required for connection to server.
                 "type": "field",
@@ -208,10 +213,25 @@
                 "port": 123
             },
 #}
-            { // direct ip
+            { // block domains
+                "type": "field",
+                "outboundTag": "block",
+                "domain": {{ xray_block_domains | tojson }}
+            },
+            { // block IPs
+                "type": "field",
+                "outboundTag": "block",
+                "ip": {{ xray_block_ips | tojson }}
+            },
+            { // direct protocol
                 "type": "field",
                 "outboundTag": "direct",
-                "ip": {{ (xray_direct_dns_servers|list + xray_direct_ips|list) | tojson }}
+                "protocol": {{ xray_direct_protocols | tojson }}
+            },
+            { // direct IPs
+                "type": "field",
+                "outboundTag": "direct",
+                "ip": {{ xray_direct_ips | tojson }}
             },
             { // direct domains
                 "type": "field",
@@ -222,21 +242,6 @@
                 "type": "field",
                 "outboundTag": "xwall",
                 "ip": {{ xray_proxy_dns_servers | tojson }}
-            },
-            { // block domains
-                "type": "field",
-                "outboundTag": "block",
-                "domain": {{ xray_block_domains | tojson }}
-            },
-            { // block ips
-                "type": "field",
-                "outboundTag": "block",
-                "ip": {{ xray_block_ips | tojson }}
-            },
-            { // direct protocol
-                "type": "field",
-                "outboundTag": "direct",
-                "protocol": {{ xray_direct_protocols | tojson }}
             }
         ]
     }
