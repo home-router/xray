@@ -80,8 +80,22 @@
         }
     ],
     "outbounds": [
+{% if xray_direct_by_default %}
         {
-            "tag": "xwall",
+            "tag": "direct", // direct without going through remote xray server
+            "protocol": "freedom",
+            "settings": {
+                "domainStrategy": "UseIP"
+            },
+            "streamSettings": {
+                "sockopt": {
+                    "mark": {{ xray_direct_firewall_marks[0] }}
+                }
+            }
+        },
+{% endif %}
+        {
+            "tag": "proxy",
             "protocol": "vless",
 {% if xray_transport == "xtls" %}
             "settings": {
@@ -138,6 +152,7 @@
             }
 {% endif %}
         },
+{% if not xray_direct_by_default %}
         {
             "tag": "direct", // direct without going through remote xray server
             "protocol": "freedom",
@@ -150,6 +165,7 @@
                 }
             }
         },
+{% endif %}
         {
             "tag": "block", // block all traffic
             "protocol": "blackhole",
@@ -200,7 +216,7 @@
                 "port": {{ xray_dns_port }}
             },
 {# Prefer nftables/iptables to bypass UDP traffic, so this is commented out.
-            { // direct for udp port 123 (NTP protocol). Correct system time is required for connection to server.
+            { // direct for udp port 123 (NTP protocol). Correct system time is required for connection to server for some protocol (e.g. vmess).
                 "type": "field",
                 "outboundTag": "direct",
                 "inboundTag": [ "transparent" ],
@@ -208,36 +224,49 @@
                 "port": 123
             },
 #}
-            { // direct ip
+            { // direct for DNS servers, requried if block domains contains geoip:private.
                 "type": "field",
                 "outboundTag": "direct",
-                "ip": {{ (xray_direct_dns_servers|list + xray_direct_ips|list) | tojson }}
+                "ip": {{ xray_direct_dns_servers | tojson }}
             },
-            { // direct domains
+            { // direct protocol
                 "type": "field",
                 "outboundTag": "direct",
-                "domain": {{ xray_direct_domains | tojson }}
-            },
-            { // Cross the wall.
-                "type": "field",
-                "outboundTag": "xwall",
-                "ip": {{ xray_proxy_dns_servers | tojson }}
+                "protocol": {{ xray_direct_protocols | tojson }}
             },
             { // block domains
                 "type": "field",
                 "outboundTag": "block",
                 "domain": {{ xray_block_domains | tojson }}
             },
-            { // block ips
+            { // block IPs
                 "type": "field",
                 "outboundTag": "block",
                 "ip": {{ xray_block_ips | tojson }}
             },
-            { // direct protocol
+{% if xray_direct_by_default %}
+            { // proxy IPs
+                "type": "field",
+                "outboundTag": "proxy",
+                "ip": {{ (xray_proxy_dns_servers|list + xray_proxy_ips|list) | tojson }}
+            },
+            { // proxy domains
+                "type": "field",
+                "outboundTag": "proxy",
+                "domain": {{ xray_proxy_domains | tojson }}
+            }
+{% else %}
+            { // direct IPs
                 "type": "field",
                 "outboundTag": "direct",
-                "protocol": {{ xray_direct_protocols | tojson }}
-            }
+                "ip": {{ xray_direct_ips | tojson }}
+            },
+            { // direct domains
+                "type": "field",
+                "outboundTag": "direct",
+                "domain": {{ xray_direct_domains | tojson }}
+            },
+{% endif %}
         ]
     }
 }

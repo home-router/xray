@@ -20,7 +20,6 @@ xray_server_dns_name: xray-server.domain
 #xray_server_ip: 1.2.3.4
 xray_server_port: 443
 
-
 #######################################
 # xray transport
 #######################################
@@ -85,6 +84,17 @@ xray_proxy_dns_domains:
   - domain:github.com
   - domain:raw.githubusercontent.com
 
+# Set this to true will put direct as first outbound entry.
+# User must specify which site to use proxy.
+xray_direct_by_default: false
+
+# Required if xray_direct_by_default is true.
+xray_proxy_domains:
+  - geosite:geolocation-!cn
+
+xray_proxy_ips:
+  - geoip:!cn
+
 # Use following DNS servers for domains that can be resolved without going through remote xray server.
 xray_direct_dns_servers:
   - 223.5.5.5
@@ -92,7 +102,6 @@ xray_direct_dns_servers:
 
 xray_direct_domains:
   # We can use xray's syntax for domain matching
-  - geosite:private
   - geosite:apple-cn
   - geosite:google-cn
   - geosite:tld-cn
