@@ -45,7 +45,7 @@ xray_websocket_path: REPLACE_WITH_RANDOM_PATH_AND_SYNC_WITH_WEBSERVER
 xray_local_address: 192.168.1.254
 xray_http_port: 1984
 # For local DNS server.
-# If set this to 53, must disable/change dnsmasq's DNS port.
+# If there are other DNS server running, change to use other port.
 xray_dns_port: 53
 # For local transparent proxy server.
 xray_tproxy_port: 1812
@@ -92,12 +92,11 @@ xray_direct_dns_servers:
 
 xray_direct_domains:
   # We can use xray's syntax for domain matching
-  - geosite:private
+  - geosite:cn
   - geosite:apple-cn
   - geosite:google-cn
   - geosite:tld-cn
   - geosite:category-games@cn
-  - geosite:cn
   - "{{ xray_server_dns_name }}"
 
 xray_direct_ips:
@@ -110,13 +109,13 @@ xray_block_ips:
   - geoip:private # prevent access to local service through xray
 
 xray_server_block_domains:
-  - geosite:category-ads-all
   - geosite:private
+  - geosite:category-ads-all
+  - geosite:cn
   - geosite:apple-cn
   - geosite:google-cn
   - geosite:tld-cn
   - geosite:category-games@cn
-  - geosite:cn
 
 xray_server_block_ips:
   - geoip:private
