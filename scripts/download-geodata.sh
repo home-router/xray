@@ -17,16 +17,16 @@ bakfile() {
 download_geoip() {
     echo "download geiop.dat from Loyalsoldier"
     bakfile geoip.dat
-    wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
-    #wget https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat
+    #wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
+    wget https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat
 }
 
 download_geosite() {
     echo "download geosite.dat from Loyalsoldier"
     [[ -r geosite.dat ]] && mv -f geosite.dat geosite.dat.bak
     bakfile geosite.dat
-    wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
-    #wget https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat
+    #wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
+    wget https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat
 }
 
 download_h2y() {
