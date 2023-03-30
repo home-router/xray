@@ -204,6 +204,13 @@
                 "outboundTag": "direct",
                 "ip": {{ xray_direct_dns_servers | tojson }}
             },
+            { // Cross the wall for domains need remote DNS resolve. This is
+              // required to avoid the resolved name being in direct list in
+              // following rules.
+                "type": "field",
+                "outboundTag": "xwall",
+                "domain": {{ xray_proxy_dns_domains | tojson }}
+            },
 {# Prefer nftables/iptables to bypass UDP traffic, so this is commented out.
             { // direct for udp port 123 (NTP protocol). Correct system time is required for connection to server.
                 "type": "field",
