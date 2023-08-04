@@ -143,8 +143,8 @@ xray_sysctl_params:
   # even if there's a shorter path in this local subnet.
   # We have to disable send_redicts on specific interfaces in order to make this work.
   net.ipv4.conf.all.send_redirects: 0
-  # Change eth0 according to your system.
-  net.ipv4.conf.eth0.send_redirects: 0
+  # Refer [here](https://unix.stackexchange.com/a/666924) for the differences between "default" and "all".
+  net.ipv4.conf.default.send_redirects: 0
 
 # xray re-route firewall mark.
 # This is to handle traffic generated on the host which xray runs.
