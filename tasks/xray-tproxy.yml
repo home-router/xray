@@ -78,7 +78,18 @@
   notify: restart load-ipset
 
 - name: set sysctl parameters
-  sysctl: name={{ item.key }} value={{ item.value }} state=present reload=true sysctl_file=/etc/sysctl.d/99-sysctl.conf
+  sysctl: name={{ item.key }} value={{ item.value }} state=present reload=true sysctl_file=/etc/sysctl.d/99-xray-tproxy.conf
   with_dict: "{{ xray_sysctl_params }}"
+  # In case br_netfilter is note loaded, this task may fail. Just ignore error
+  # to work around that.
+  ignore_errors: yes
   tags:
     - config
+
+# Refer to this [libvirt article](https://wiki.libvirt.org/Net.bridge.bridge-nf-call_and_sysctl.conf.html)
+# for why this is needed.
+- name: add udev rules to apply sysctl settings on load of br_netfilter kernel module
+  copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }} owner=root group=root
+  with_items:
+    - { src: 99-bridge.rules, dest: /etc/udev/rules.d/99-bridge.rules, mode: "0644" }
+

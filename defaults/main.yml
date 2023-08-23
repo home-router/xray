@@ -145,6 +145,12 @@ xray_sysctl_params:
   net.ipv4.conf.all.send_redirects: 0
   # Refer [here](https://unix.stackexchange.com/a/666924) for the differences between "default" and "all".
   net.ipv4.conf.default.send_redirects: 0
+  # Since we are using nftables to implement transparent proxy, we should
+  # disable traffice passing to iptables.
+  # Why they are enabled by default? Refer to this [excellent answer](https://unix.stackexchange.com/a/719143/).
+  net.bridge.bridge-nf-call-ip6tables: 0
+  net.bridge.bridge-nf-call-iptables: 0
+  net.bridge.bridge-nf-call-arptables: 0
 
 # xray re-route firewall mark.
 # This is to handle traffic generated on the host which xray runs.
