@@ -139,6 +139,10 @@ xray_direct_firewall_marks:
   #- 253
 
 xray_sysctl_params:
+  net.ipv4.ip_forward: 1
+  net.ipv6.conf.all.forwarding: 1
+  net.ipv4.tcp_fastopen: 3
+  net.ipv4.tcp_syncookies: 1
   # Host running xray may act as a side-gateway, so client should indeed send traffic to xray host
   # even if there's a shorter path in this local subnet.
   # We have to disable send_redicts on specific interfaces in order to make this work.
