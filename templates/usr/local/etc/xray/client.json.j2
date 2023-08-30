@@ -189,7 +189,7 @@
         ]
     },
     "routing": {
-        "domainStrategy": "IPOnDemand",
+        "domainStrategy": "IPIfNonMatch",
         "rules": [
             { // Intercept DNS port traffic and use v2ray's DNS.
               // If running another DNS server using port 53 on the host running xray, avoid use TPROXY to intercept DNS
