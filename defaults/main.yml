@@ -20,23 +20,34 @@ xray_server_dns_name: xray-server.domain
 #xray_server_ip: 1.2.3.4
 xray_server_port: 443
 
+# Use fallback syntax of xray. Convert to json in the generated config file.
+xray_server_fallbacks:
+  - dest: 80
+xray_server_certifacate_file: /etc/letsencrypt/live/{{ xray_server_dns_name }}/fullchain.pem
+xray_server_key_file: /etc/letsencrypt/live/{{ xray_server_dns_name }}/privkey.pem
 
 #######################################
 # xray transport
 #######################################
 
 # Must choose only one transport method.
-# xray_transport: xtls
+
+##### xtls
+#xray_transport: xtls
+xray_xtls_server_flow: xtls-rprx-direct
+# Refer to https://github.com/XTLS/Xray-core/discussions/59 before using xtls-rprx-splice.
+# Performance may drop due to enabling ip forwarding.
+xray_xtls_client_flow: xtls-rprx-splice
+
+# Or use XTLS Vision. Refer to [XTLS Vision, fixes TLS in TLS, to the star and beyond](https://github.com/XTLS/Xray-core/discussions/1295)
+# Not tested yet.
+#xray_xtls_server_flow: xtls-rprx-vision
+#xray_xtls_client_flow: xtls-rprx-vision
+
+##### websocket
 xray_transport: websocket
-
-# Please do not include slash in websocket path. Template will add slashes.
+# Please do not include slash in websocket path. Template will add slash.
 xray_websocket_path: REPLACE_WITH_RANDOM_PATH_AND_SYNC_WITH_WEBSERVER
-
-# Use fallback syntax of xray. Convert to json in the generated config file.
-xray_server_fallbacks:
-  - dest: 80
-xray_server_certifacate_file: /etc/letsencrypt/live/{{ xray_server_dns_name }}/fullchain.pem
-xray_server_key_file: /etc/letsencrypt/live/{{ xray_server_dns_name }}/privkey.pem
 
 #######################################
 # Local xray config.

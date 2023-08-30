@@ -92,9 +92,7 @@
                         "users": [
                             {
                                 "id": "{{ xray_client_uuid }}",
-                                // Refer to https://github.com/XTLS/Xray-core/discussions/59 before using xtls-rprx-splice.
-                                // Performance may drop due to enabling ip forwarding.
-                                "flow": "xtls-rprx-splice",
+                                "flow": "{{ xray_xtls_client_flow }}",
                                 "encryption": "none",
                                 "level": 0
                             }

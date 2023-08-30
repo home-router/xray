@@ -17,7 +17,7 @@
                     {
                         "id": "{{ client['uuid'] }}",
 {% if xray_transport == "xtls" %}
-                        "flow": "xtls-rprx-direct",
+                        "flow": "{{ xray_xtls_server_flow }}",
 {% endif %}
                         "level": 0,
                         "email": "{{ client['email'] }}"
