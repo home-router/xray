@@ -130,7 +130,7 @@
                 "security": "tls",
                 "tlsSettings": {
                      "serverName": "{{ xray_server_dns_name }}",
-                     "fingerprint": "chrome"
+                     "fingerprint": "{{ xray_client_tls_fingerprint }}"
                 },
                 "wsSettings": {
                     "path": "/{{ xray_websocket_path }}/"

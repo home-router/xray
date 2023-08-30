@@ -26,17 +26,17 @@ xray_server_port: 443
 #######################################
 
 # Must choose only one transport method.
+# xray_transport: xtls
+xray_transport: websocket
 
-xray_transport: xtls
+# Please do not include slash in websocket path. Template will add slashes.
+xray_websocket_path: REPLACE_WITH_RANDOM_PATH_AND_SYNC_WITH_WEBSERVER
+
 # Use fallback syntax of xray. Convert to json in the generated config file.
 xray_server_fallbacks:
   - dest: 80
 xray_server_certifacate_file: /etc/letsencrypt/live/{{ xray_server_dns_name }}/fullchain.pem
 xray_server_key_file: /etc/letsencrypt/live/{{ xray_server_dns_name }}/privkey.pem
-
-#xray_transport: websocket
-# Please do not include slash in websocket path. Template will add slashes.
-xray_websocket_path: REPLACE_WITH_RANDOM_PATH_AND_SYNC_WITH_WEBSERVER
 
 #######################################
 # Local xray config.
@@ -49,6 +49,8 @@ xray_http_port: 1984
 xray_dns_port: 53
 # For local transparent proxy server.
 xray_tproxy_port: 1812
+
+xray_client_tls_fingerprint: chrome
 
 # Transparent proxy for only selected source IPs (subnet or host).
 # Traffic from other IPs are not affected.
