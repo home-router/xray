@@ -1,0 +1,15 @@
+- name: Load nft_tproxy module
+  modprobe:
+    name: nft_tproxy
+    state: present
+
+- name: Ensure tproxy module is loaded on boot
+  lineinfile:
+    path: /etc/modules-load.d/modules.conf
+    regexp: '^nft_tproxy'
+    line: 'nft_tproxy'
+    create: yes
+    owner: root
+    group: root
+    mode: '0644'
+

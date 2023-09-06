@@ -1,3 +1,12 @@
+# If xray is running inside LXC container, we should setup kernel module loading
+# on host system instead of inside container.
+# Put host name inside "lxc_container" group in ansible inventory to mark this.
+- include: kernel-module.yml
+  when: "'xray' in group_names and 'lxc_container' not in group_names"
+
+- meta: end_play
+  when: "'pve_host' in group_names"
+
 - name: check if release is already downloaded
   stat: path="{{ role_path }}/files/release/Xray-{{ xray_os_arch }}-{{ xray_version }}.zip"
   register: release_check

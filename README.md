@@ -90,7 +90,7 @@ For IPv6, if SLAAC and privacy extension is enabled, we won't be able to impleme
 
 ## Running inside LXC container
 
-For Proxmox VE users, I highly recommend using LXC container because it's very easy 
+For Proxmox VE (PVE) users, I highly recommend using LXC container because it's very easy 
 to setup. (Running LXC/LXD container on Ubuntu should be easy too, but I haven't
 tried yet.)
 
@@ -112,8 +112,24 @@ For Proxmox VE, add following content to `/etc/pve/lxc/<id>.conf` then shutdown 
 
     lxc.prlimit.nofile: 500000
 
-Kernel module loading should also be done on the host. Refer to
-[`tasks/xray-tproxy.yml`](./tasks/xray-tproxy.yml), search for `lxc_container`.
+Kernel module loading should also be done on the host. Refer to [`tasks/kernel-module.yml`](./tasks/kernel-module.yml).
+In inventory host, use group to label PVE host and lxc container. Example:
+
+```
+# Mark pve1 as PVE host, thus only execute kernel module setup tasks.
+[pve_host]
+pve1
+
+# Mark xray1 is a lxc_container. Thus should not make kernel module related
+# changes.
+[lxc_container]
+xray1
+
+# xray group should include both lxc container and PVE host.
+[xray]
+xray1
+pve1
+```
 
 ## References
 

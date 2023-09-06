@@ -1,23 +1,3 @@
-# If xray is running inside LXC container, we should setup kernel module loading
-# on host system instead of inside container.
-# Put host name inside "lxc_container" group in ansible inventory to mark this.
-- name: Load nft_tproxy module
-  modprobe:
-    name: nft_tproxy
-    state: present
-  when: "'lxc_container' not in group_names"
-
-- name: Ensure tproxy module is loaded on boot
-  lineinfile:
-    path: /etc/modules-load.d/modules.conf
-    regexp: '^nft_tproxy'
-    line: 'nft_tproxy'
-    create: yes
-    owner: root
-    group: root
-    mode: '0644'
-  when: "'lxc_container' not in group_names"
-
 - name: install tproxy route settings systemd service (client)
   template: src={{ item }} dest=/{{ item | regex_replace('\.j2$', '') }} mode="0644" owner=root group=root
   notify: restart tproxyrule
