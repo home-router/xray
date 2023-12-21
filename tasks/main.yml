@@ -4,7 +4,7 @@
 - include: kernel-module.yml
   when: "'xray' in group_names and 'lxc_container' not in group_names"
 
-- meta: end_play
+- meta: end_host
   when: "'pve_host' in group_names"
 
 - name: check if release is already downloaded
