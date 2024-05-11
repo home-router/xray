@@ -14,7 +14,7 @@
     - config
 
 - name: install package on system
-  include: "pkg-{{ ansible_pkg_mgr }}.yml"
+  include_tasks: "pkg-{{ ansible_pkg_mgr }}.yml"
 
 - name: ensure /etc/nftables exists
   file: path={{ item }} state=directory owner=root group=root mode=0755

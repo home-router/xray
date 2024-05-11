@@ -1,7 +1,7 @@
 # If xray is running inside LXC container, we should setup kernel module loading
 # on host system instead of inside container.
 # Put host name inside "lxc_container" group in ansible inventory to mark this.
-- include: kernel-module.yml
+- include_tasks: kernel-module.yml
   when: "'xray' in group_names and 'lxc_container' not in group_names"
 
 - meta: end_host
@@ -58,8 +58,8 @@
   with_items:
     - xray
 
-- include: client.yml
+- include_tasks: client.yml
   when: "'xray' in group_names"
 
-- include: server.yml
+- include_tasks: server.yml
   when: "'xray_server' in group_names"
