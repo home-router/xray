@@ -30,7 +30,6 @@
   when: "'xray_server' not in group_names"
   tags:
     - update
-    - never
 
 - name: create install directories
   file: path={{ item }} state=directory owner=root group=root mode=0755

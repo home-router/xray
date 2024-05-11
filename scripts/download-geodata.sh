@@ -7,40 +7,43 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 mkdir -p ../files/release
 cd ../files/release
 
-bakfile() {
-    local fname=$1
-    if [[ -r $fname ]]; then
-        mv -f $fname $fname.bak
+function is_modified_within_last_week() {
+    file="$1";
+    if [[ $(find "$file" -mtime -7 -print) ]]; then
+        return 0 # this is true.
+    else
+        return 1
     fi
 }
 
-download_geoip() {
-    echo "download geiop.dat from Loyalsoldier"
-    bakfile geoip.dat
-    #wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
-    wget https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat
+download_datfile() {
+    local url=$1
+
+    local datfile=$(basename $url)
+
+    if is_modified_within_last_week "${datfile}"; then
+        echo "skip downloading ${datfile} because modified within last week"
+        return
+    fi
+
+    echo "download ${datfile} from ${url}"
+    curl "${url}" -o "${datefile}.new"
+
+    # Make backup before mv.
+    if [[ -r "${datfile}" ]]; then
+        mv -f "${datfile}" "${datfile}.bak"
+    fi
+    mv "${datefile}.new" "${datfile}"
 }
 
-download_geosite() {
-    echo "download geosite.dat from Loyalsoldier"
-    [[ -r geosite.dat ]] && mv -f geosite.dat geosite.dat.bak
-    bakfile geosite.dat
-    #wget https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
-    wget https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat
-}
+# geoip
+#download_datfile https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
+download_datfile https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat
 
-download_h2y() {
-    echo "download h2y.dat from ToutyRater"
-    bakfile h2y.dat
-    wget https://github.com/ToutyRater/V2Ray-SiteDAT/raw/master/geofiles/h2y.dat 
-}
+# geosite
+#download_datfile https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
+download_datfile https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat
 
-download_china_ip_list() {
-    echo "download china ip list from ToutyRater"
-    bakfile china_ip_list.txt
-    wget https://github.com/17mon/china_ip_list/raw/master/china_ip_list.txt
-}
+# china_ip_list from ipip.net
+download_datfile https://github.com/17mon/china_ip_list/raw/master/china_ip_list.txt
 
-download_geoip
-download_geosite
-download_china_ip_list
