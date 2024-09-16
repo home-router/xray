@@ -27,7 +27,7 @@ download_datfile() {
     fi
 
     echo "download ${datfile} from ${url}"
-    curl "${url}" -o "${datefile}.new"
+    curl -L "${url}" -o "${datefile}.new"
 
     # Make backup before mv.
     if [[ -r "${datfile}" ]]; then
