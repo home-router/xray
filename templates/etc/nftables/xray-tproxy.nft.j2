@@ -57,11 +57,11 @@ table inet mangle {
 
 		# Xray supports only TCP and UDP
 		ip protocol != { tcp, udp } counter return
-		{#ip6 nexthdr { tcp, udp } counter return #}
+		# ip6 nexthdr { tcp, udp } counter return
 
 		# Add mark for TCP and UDP packets, redirect to xray port.
 		ip protocol { tcp, udp } tproxy ip to 127.0.0.1:$xray_tproxy_port counter meta mark set {{ xray_route_firewall_mark }}
-		{#ip6 nexthdr { tcp, udp } tproxy ip6 to [::1]:$xray_tproxy_port counter meta mark set {{ xray_route_firewall_mark }} #}
+		# ip6 nexthdr { tcp, udp } tproxy ip6 to [::1]:$xray_tproxy_port counter meta mark set {{ xray_route_firewall_mark }}
 	}
 
 {% if xray_tproxy_local_traffic['enable'] %}
