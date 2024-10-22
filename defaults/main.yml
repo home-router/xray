@@ -1,6 +1,6 @@
 # We download xray release Xray-{{ xray_os_arch }}-{{ xray_version }}.tar.gz
 xray_os_arch: linux-64
-xray_version: v1.8.23
+xray_version: v24.9.30
 
 #######################################
 # Remote xray server related config.
