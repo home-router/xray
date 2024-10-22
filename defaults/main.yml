@@ -110,7 +110,7 @@ xray_direct_domains:
   - geosite:google-cn
   - geosite:tld-cn
   - geosite:category-games@cn
-  - "{{ xray_server_dns_name }}"
+  - full:"{{ xray_server_dns_name }}"
 
 xray_direct_ips:
   - geoip:cn
