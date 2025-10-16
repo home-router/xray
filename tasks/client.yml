@@ -1,7 +1,7 @@
 - name: generate client config
-  template: src={{ item }} dest=/{{ item | dirname }}/config.json owner=root group=root mode="0644"
+  template: src={{ item }} dest=/{{ item | dirname }}/config.jsonc owner=root group=root mode="0644"
   with_items:
-    - usr/local/etc/xray/client.json.j2
+    - usr/local/etc/xray/client.jsonc.j2
   notify: restart xray
   tags:
     - config
