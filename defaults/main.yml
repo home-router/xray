@@ -1,6 +1,6 @@
 # We download xray release Xray-{{ xray_os_arch }}-{{ xray_version }}.tar.gz
 xray_os_arch: linux-64
-xray_version: v24.9.30
+xray_version: v25.10.15
 
 #######################################
 # Remote xray server related config.
@@ -44,10 +44,27 @@ xray_xtls_client_flow: xtls-rprx-splice
 #xray_xtls_server_flow: xtls-rprx-vision
 #xray_xtls_client_flow: xtls-rprx-vision
 
-##### websocket
-xray_transport: websocket
+##### websocket (deprecated)
+# xray_transport: websocket
 # Please do not include slash in websocket path. Template will add slash.
 xray_websocket_path: REPLACE_WITH_RANDOM_PATH_AND_SYNC_WITH_WEBSERVER
+
+##### xhttp
+# XHTTP Design and config options refer to https://github.com/XTLS/Xray-core/discussions/4113
+# Config references https://github.com/XTLS/Xray-examples/tree/main/VLESS-XHTTP3-Nginx
+# This requires server hiding behind Nginx, just like websocket.
+xray_transport: xhttp
+# Please do not include slash in xhttp path. Template will add slash.
+xray_xhttp_path: REPLACE_WITH_RANDOM_PATH_AND_SYNC_WITH_WEBSERVER
+# Valid mode: "stream-one", "stream-up", "packet-up".
+xray_xhttp_mode: auto
+# Valid alpn: "h3", "h2", "http/1.1".
+# Note h3 may cause repeated local connection leading to high cpu usage, not sure why.
+xray_xhttp_tls_alpn:
+  - h2
+  - http/1.1
+xray_xhttp_server_socket: /dev/shm/xray.socket
+xray_xhttp_server_socket_mode: "0666"
 
 #######################################
 # Local xray config.

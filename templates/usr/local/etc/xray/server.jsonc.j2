@@ -5,10 +5,14 @@
         "error": ""
     },
     "inbounds": [
-        {
-            "port": {{ xray_server_port }},
-{% if xray_transport == "websocket" %}
-            "listen": "127.0.0.1",
+    {
+{% if xray_transport == "xhttp" %}
+        "listen": "{{ xray_xhttp_server_socket }},{{ xray_xhttp_server_socket_mode }}",
+{% else %}
+        "port": {{ xray_server_port }},
+{%   if xray_transport == "websocket" %}
+        "listen": "127.0.0.1",
+{%   endif %}
 {% endif %}
             "protocol": "vless",
             "settings": {
@@ -50,6 +54,14 @@
                 "security": "none",
                 "wsSettings": {
                     "path": "/{{ xray_websocket_path }}/"
+                }
+            }
+{% elif xray_transport == "xhttp" %}
+            "streamSettings": {
+                "network": "xhttp",
+                "xhttpSettings": {
+                    "mode": "{{ xray_xhttp_mode }}",
+                    "path": "/{{ xray_xhttp_path }}/"
                 }
             }
 {% endif %}

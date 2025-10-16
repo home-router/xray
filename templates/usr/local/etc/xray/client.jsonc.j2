@@ -1,6 +1,8 @@
 {
     "policy": {
         "levels": {
+            // Default inbound/outbound user level is 0.
+            // Refer to https://xtls.github.io/config/policy.html#policyobject
             "0": {
                 "handshake": 4,
                 "connIdle": 180,
@@ -132,6 +134,35 @@
                 },
                 "wsSettings": {
                     "path": "/{{ xray_websocket_path }}/"
+                }
+            }
+{% elif xray_transport == "xhttp" %}
+            "settings": {
+                "vnext": [
+                    {
+                        "address": "{{ xray_server_ip | default(xray_server_dns_name) }}",
+                        "port": 443,
+                        "users": [
+                            {
+                                "id": "{{ xray_client_uuid }}",
+                                "encryption": "none",
+                                "level": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "xhttp",
+                "xhttpSettings": {
+                    "path": "/{{ xray_xhttp_path }}/",
+                    "mode": "{{ xray_xhttp_mode }}"
+                },
+                "security": "tls",
+                "tlsSettings": {
+                    "serverName": "{{ xray_server_dns_name }}",
+                    "fingerprint": "{{ xray_client_tls_fingerprint }}",
+                    "alpn": {{ xray_xhttp_tls_alpn | tojson }}
                 }
             }
 {% endif %}
